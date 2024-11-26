@@ -32,20 +32,25 @@ def get_clustering_coefficient(graph: Graph) -> float:
 	triangles = 0
 	two_paths = 0
 
-	for node in range(graph.get_num_nodes()):
-		neighbors = list(graph.get_neighbors(node))
+	#faster lookup
+	adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
+
+	for node, neighbors in adjacency.items():
 		num_neighbors = len(neighbors)
 
+		if num_neighbors < 2:
+			continue
 		two_paths += num_neighbors * (num_neighbors - 1) // 2
 
 		for u, v in combinations(neighbors, 2):
-			if v in graph.get_neighbors(u):
+			if v in adjacency[u]:
 				triangles += 1
 
 	if two_paths == 0:
 		return 0.0
 
 	return triangles / two_paths
+
 
 def get_degree_distribution(graph: Graph) -> dict[int, int]:
 	degree_count = {}
