@@ -29,44 +29,35 @@ def get_diameter(graph: Graph) -> int:
 
 	return diameter
 
-def get_clustering_coefficient(graph: Graph, sample_size: int = 10000) -> float:
-    """
-    Return the approximate global clustering coefficient using sampling.
-    :param graph: The input graph.
-    :param sample_size: The number of nodes or edges to sample for approximation.
-    :return: Approximate global clustering coefficient of the graph.
-    """
+def get_clustering_coefficient(graph: Graph) -> float:
     triangles = 0
     two_paths = 0
 
-    # Precompute adjacency sets for faster lookup
+    # Precompute adjacency list for fast lookups
     adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
 
-    # Use sampling for large graphs
-    nodes = list(adjacency.keys())
-    sampled_nodes = random.sample(nodes, min(sample_size, len(nodes)))
-
-    for node in sampled_nodes:
-        neighbors = adjacency[node]
+    for node, neighbors in adjacency.items():
+        neighbors = list(neighbors)  # Convert to list for indexing
         num_neighbors = len(neighbors)
 
-        # Count two-paths centered at this node
         if num_neighbors < 2:
             continue
+
+        # Count potential two-paths
         two_paths += num_neighbors * (num_neighbors - 1) // 2
 
-        # Count triangles involving this node
-        for u, v in combinations(neighbors, 2):
-            if v in adjacency[u]:  # Check if u and v are connected
-                triangles += 1
+        # Count triangles by checking for shared neighbors
+        for i in range(num_neighbors):
+            for j in range(i + 1, num_neighbors):
+                if neighbors[j] in adjacency[neighbors[i]]:
+                    triangles += 1
 
-    # Avoid division by zero
     if two_paths == 0:
         return 0.0
 
-    # Scale result to approximate global clustering coefficient
-    scaling_factor = len(nodes) / len(sampled_nodes)
-    return (triangles / two_paths) * scaling_factor
+    return triangles / two_paths
+
+
 
 
 def get_degree_distribution(graph: Graph) -> dict[int, int]:
