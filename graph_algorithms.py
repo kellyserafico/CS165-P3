@@ -30,32 +30,29 @@ def get_diameter(graph: Graph) -> int:
 	return diameter
 
 def get_clustering_coefficient(graph: Graph) -> float:
-    triangles = 0
-    two_paths = 0
+	triangles = 0
+	two_paths = 0
 
-    # Precompute adjacency list for fast lookups
-    adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
+	adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
 
-    for node, neighbors in adjacency.items():
-        neighbors = list(neighbors)  # Convert to list for indexing
-        num_neighbors = len(neighbors)
+	for node, neighbors in adjacency.items():
+		neighbors = list(neighbors)
+		num_neighbors = len(neighbors)
 
-        if num_neighbors < 2:
-            continue
+		if num_neighbors < 2:
+			continue
 
-        # Count potential two-paths
-        two_paths += num_neighbors * (num_neighbors - 1) // 2
+		two_paths += num_neighbors * (num_neighbors - 1) // 2
 
-        # Count triangles by checking for shared neighbors
-        for i in range(num_neighbors):
-            for j in range(i + 1, num_neighbors):
-                if neighbors[j] in adjacency[neighbors[i]]:
-                    triangles += 1
+		for i in range(num_neighbors):
+			for j in range(i + 1, num_neighbors):
+				if neighbors[j] in adjacency[neighbors[i]]:
+					triangles += 1
 
-    if two_paths == 0:
-        return 0.0
+	if two_paths == 0:
+		return 0.0
 
-    return triangles / two_paths
+	return triangles / two_paths
 
 
 
