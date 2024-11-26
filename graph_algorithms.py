@@ -1,6 +1,7 @@
 from graph import Graph
 from collections import deque
 from itertools import combinations
+import random
 
 def get_diameter(graph: Graph) -> int:
 	def bfs_longest_path(start_node):
@@ -28,28 +29,44 @@ def get_diameter(graph: Graph) -> int:
 
 	return diameter
 
-def get_clustering_coefficient(graph: Graph) -> float:
-	triangles = 0
-	two_paths = 0
+def get_clustering_coefficient(graph: Graph, sample_size: int = 10000) -> float:
+    """
+    Return the approximate global clustering coefficient using sampling.
+    :param graph: The input graph.
+    :param sample_size: The number of nodes or edges to sample for approximation.
+    :return: Approximate global clustering coefficient of the graph.
+    """
+    triangles = 0
+    two_paths = 0
 
-	#faster lookup
-	adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
+    # Precompute adjacency sets for faster lookup
+    adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
 
-	for node, neighbors in adjacency.items():
-		num_neighbors = len(neighbors)
+    # Use sampling for large graphs
+    nodes = list(adjacency.keys())
+    sampled_nodes = random.sample(nodes, min(sample_size, len(nodes)))
 
-		if num_neighbors < 2:
-			continue
-		two_paths += num_neighbors * (num_neighbors - 1) // 2
+    for node in sampled_nodes:
+        neighbors = adjacency[node]
+        num_neighbors = len(neighbors)
 
-		for u, v in combinations(neighbors, 2):
-			if v in adjacency[u]:
-				triangles += 1
+        # Count two-paths centered at this node
+        if num_neighbors < 2:
+            continue
+        two_paths += num_neighbors * (num_neighbors - 1) // 2
 
-	if two_paths == 0:
-		return 0.0
+        # Count triangles involving this node
+        for u, v in combinations(neighbors, 2):
+            if v in adjacency[u]:  # Check if u and v are connected
+                triangles += 1
 
-	return triangles / two_paths
+    # Avoid division by zero
+    if two_paths == 0:
+        return 0.0
+
+    # Scale result to approximate global clustering coefficient
+    scaling_factor = len(nodes) / len(sampled_nodes)
+    return (triangles / two_paths) * scaling_factor
 
 
 def get_degree_distribution(graph: Graph) -> dict[int, int]:
