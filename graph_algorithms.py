@@ -29,14 +29,13 @@ def get_diameter(graph: Graph) -> int:
 
 	return diameter
 
-def get_clustering_coefficient_small(graph: Graph) -> float:
+def get_clustering_coefficient(graph: Graph) -> float:
 	triangles = 0
 	two_paths = 0
 
 	adjacency = {node: set(graph.get_neighbors(node)) for node in range(graph.get_num_nodes())}
 
-	for node in range(graph.get_num_nodes()):
-		neighbors = adjacency[node]
+	for node, neighbors in adjacency.items():
 		num_neighbors = len(neighbors)
 
 		if num_neighbors < 2:
@@ -46,52 +45,13 @@ def get_clustering_coefficient_small(graph: Graph) -> float:
 
 		for neighbor in neighbors:
 			if neighbor > node:
-				shared_neighbors = neighbors.intersection(adjacency[neighbor])
-				triangles += len(shared_neighbors)
+				common_neighbors = neighbors & adjacency[neighbor]
+				triangles += len(common_neighbors)
 
 	if two_paths == 0:
 		return 0.0
 
 	return triangles / two_paths
-
-
-def approximate_clustering_coefficient(graph: Graph, sample_size: int = 1000) -> float:
-	if graph.get_num_nodes() == 0:
-		return 0.0
-
-	nodes = list(range(graph.get_num_nodes()))
-	sampled_nodes = random.sample(nodes, min(sample_size, len(nodes)))
-
-	triangles = 0
-	two_paths = 0
-
-	adjacency = {node: set(graph.get_neighbors(node)) for node in nodes}
-
-	for node in sampled_nodes:
-		neighbors = adjacency[node]
-		num_neighbors = len(neighbors)
-
-		if num_neighbors < 2:
-			continue
-
-		two_paths += num_neighbors * (num_neighbors - 1) // 2
-
-		for neighbor in neighbors:
-			shared_neighbors = neighbors.intersection(adjacency[neighbor])
-			triangles += len(shared_neighbors)
-
-	if two_paths == 0:
-		return 0.0
-
-	return triangles / two_paths
-
-
-def get_clustering_coefficient(graph: Graph) -> float:
-	threshold = 10000
-	if graph.get_num_nodes() > threshold:
-		return approximate_clustering_coefficient(graph, sample_size=1000)
-	else:
-		return get_clustering_coefficient_small(graph)
 
 
 
